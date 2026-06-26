@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Preview | Getshere Pro</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: transparent !important;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Editable Element Highlighting in Editor Mode */
+    body.editor-mode [contenteditable="true"] {
+      outline: 2px dashed rgba(99, 102, 241, 0.4);
+      outline-offset: 4px;
+      cursor: text;
+      transition: outline 0.2s, background 0.2s;
+    }
+
+    body.editor-mode [contenteditable="true"]:hover {
+      outline-color: rgba(99, 102, 241, 0.8);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    body.editor-mode [contenteditable="true"]:focus {
+      outline: 2px solid #6366f1;
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    /* Section highlight for layout manager */
+    body.editor-mode section {
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+    
+    body.editor-mode section:hover {
+      box-shadow: inset 0 0 0 2px rgba(168, 85, 247, 0.3);
+    }
+
+    /* Animation Keyframes and Classes */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulseLoop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes bounceLoop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .anim-fade-in { animation: fadeIn 0.8s ease forwards !important; }
+    .anim-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards !important; }
+    .anim-zoom-in { animation: zoomIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards !important; }
+    .anim-pulse { animation: pulseLoop 2s infinite ease-in-out !important; }
+    .anim-bounce { animation: bounceLoop 2s infinite ease-in-out !important; }
+  </style>
+</head>
+<body>
+  <div id="global-header"></div>
+  <div id="brand-root"></div>
+  <div id="global-footer"></div>
+
+  <script>
+    const previewData = sessionStorage.getItem('getshere_preview');
+
+    if (!previewData) {
+      document.getElementById('brand-root').innerHTML = `
+        <div style="max-width: 600px; margin: 100px auto; padding: 40px; background: #161c2a; color: #fff; border-radius: 12px; text-align: center; font-family: sans-serif; border: 1px solid rgba(255, 255, 255, 0.08);">
+          <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+          <h2 style="margin-top: 0;">No Editor Data Found</h2>
+          <p style="color: #9ca3af; line-height: 1.6; margin-bottom: 30px;">Load a page from the Beta Dashboard to start editing live.</p>
+          <a href="mypage.html" style="display: inline-block; background: #6366f1; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Go to Dashboard</a>
+        </div>
+      `;
+    } else {
+      try {
+        const parsed = JSON.parse(previewData);
+        window.BRAND_SLUG = parsed.slug || 'preview';
+        window.__GETSHERE_PREVIEW_DATA__ = parsed;
+
+        // Intercept fetch calls to mock KV
+        const originalFetch = window.fetch;
+        window.fetch = async function(url, options) {
+          const requestUrl = typeof url === 'string' ? url : url.url;
+          if (requestUrl && requestUrl.includes('?slug=')) {
+            // Keep plan as free for loaders, but support pro features dynamically
+            const responseData = JSON.stringify(window.__GETSHERE_PREVIEW_DATA__);
+            return new Response(responseData, {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+          return originalFetch(url, options);
+        };
+
+        // Determine correct loader
+        const template = parsed.template || 'personal1';
+        let loaderType = 'personal';
+        if (template.startsWith('shop')) loaderType = 'shop';
+        else if (template.startsWith('school')) loaderType = 'school';
+        else if (template.startsWith('cv')) loaderType = 'cv';
+
+        // Load stylesheet/script loaders
+        const loaderScript = document.createElement('script');
+        loaderScript.src = '/assets/js/' + loaderType + '-loader.js';
+        
+        loaderScript.onload = () => {
+          // Trigger DOMContentLoaded
+          document.dispatchEvent(new Event('DOMContentLoaded'));
+          
+          // Setup inline editing capabilities once template loads
+          setTimeout(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isEditor = (window !== window.parent) || (urlParams.get('editor') === 'true');
+            if (isEditor) {
+              initLiveEditingHooks();
+            } else {
+              applyTranslationsOnly();
+              applyCustomStyles();
+            }
+          }, 800);
+        };
+        document.body.appendChild(loaderScript);
+
+      } catch (err) {
+        console.error("Error launching preview loader:", err);
+        document.getElementById('brand-root').innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ef4444;">Error loading template.</h2>';
+      }
+    }
+
+    // ==========================================
+    // Visual Editing & Messaging Engine
+    // ==========================================
+    let pathMap = {};
+
+    function initLiveEditingHooks() {
+      // Toggle Editor Mode styles on body
+      document.body.classList.add('editor-mode');
+
+      // Hook input event listener for text edits
+      document.body.addEventListener('input', handleInlineInput);
+
+      // Hook double-click listener for image edits
+      document.body.addEventListener('dblclick', handleImageDblClick);
+      
+      // Hook click listener to select element and edit styles
+      document.body.addEventListener('click', handleElementSelection);
+
+      // Let parent window know the preview has loaded successfully
+      window.parent.postMessage({ type: 'PREVIEW_LOADED' }, '*');
+      
+      // Perform initial text node mapping for contenteditable
+      mapEditableElements();
+
+      // Apply saved styles
+      applyCustomStyles();
+    }
+
+    function applyTranslationsOnly() {
+      const config = window.__GETSHERE_PREVIEW_DATA__;
+      if (!config || !config.template_data) return;
+
+      // Apply custom text translation values if they exist
+      if (config.template_data.custom_text) {
+        const translations = config.template_data.custom_text;
+        const textElements = document.getElementById('brand-root').querySelectorAll('h1, h2, h3, h4, h5, p, span, a, li, td, th, b, strong, em');
+        textElements.forEach(el => {
+          if (el.children.length > 0) {
+            let hasComplexKids = false;
+            for (let i = 0; i < el.children.length; i++) {
+              const tag = el.children[i].tagName.toLowerCase();
+              if (tag !== 'span' && tag !== 'strong' && tag !== 'em' && tag !== 'b' && tag !== 'i') {
+                hasComplexKids = true;
+                break;
+              }
+            }
+            if (hasComplexKids) return;
+          }
+
+          const text = el.innerText.trim();
+          if (!text) return;
+
+          for (const originalKey in translations) {
+            if (text === originalKey || text === translations[originalKey]) {
+              el.innerText = translations[originalKey];
+              break;
+            }
+          }
+        });
+      }
+
+      // Apply custom image translation values if they exist
+      if (config.template_data.custom_images) {
+        const imgTranslations = config.template_data.custom_images;
+        const images = document.getElementById('brand-root').querySelectorAll('img');
+        images.forEach(img => {
+          const src = img.getAttribute('src');
+          if (src && imgTranslations[src]) {
+            img.src = imgTranslations[src];
+            img.setAttribute('src', imgTranslations[src]);
+          }
+        });
+      }
+    }
+
+    // Recursively build a map of string values to JSON paths
+    function buildPathMap(obj, currentPath = '', map = {}) {
+      if (typeof obj === 'string' || typeof obj === 'number') {
+        const text = String(obj).trim();
+        if (text.length > 0) {
+          if (!map[text]) map[text] = [];
+          map[text].push(currentPath);
+        }
+      } else if (Array.isArray(obj)) {
+        obj.forEach((item, index) => {
+          buildPathMap(item, `${currentPath}.${index}`, map);
+        });
+      } else if (obj !== null && typeof obj === 'object') {
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            const nextPath = currentPath ? `${currentPath}.${key}` : key;
+            buildPathMap(obj[key], nextPath, map);
+          }
+        }
+      }
+      return map;
+    }
+
+    // Traverse all text nodes and images and make them editable
+    function mapEditableElements() {
+      const config = window.__GETSHERE_PREVIEW_DATA__;
+      if (!config) return;
+
+      // Ensure custom text translations exist
+      if (!config.template_data) config.template_data = {};
+      if (!config.template_data.custom_text) config.template_data.custom_text = {};
+      const translations = config.template_data.custom_text;
+
+      // Reset and build the path map
+      pathMap = buildPathMap(config);
+
+      // 1. Map Text Elements
+      const textElements = document.getElementById('brand-root').querySelectorAll('h1, h2, h3, h4, h5, p, span, a, li, td, th, b, strong, em');
+      
+      textElements.forEach(el => {
+        // Skip elements with complex children wrappers, unless it is a badge or card
+        if (el.children.length > 0) {
+          let hasComplexKids = false;
+          for (let i = 0; i < el.children.length; i++) {
+            const tag = el.children[i].tagName.toLowerCase();
+            if (tag !== 'span' && tag !== 'strong' && tag !== 'em' && tag !== 'b' && tag !== 'i') {
+              hasComplexKids = true;
+              break;
+            }
+          }
+          if (hasComplexKids) return;
+        }
+
+        let text = el.innerText.trim();
+        if (!text) return;
+
+        // Check if there is already a custom translated value for this element's text (or its original key)
+        let foundCustomTranslationKey = null;
+        for (const originalKey in translations) {
+          if (text === originalKey || text === translations[originalKey]) {
+            foundCustomTranslationKey = originalKey;
+            break;
+          }
+        }
+
+        if (foundCustomTranslationKey) {
+          // Apply saved custom title translation
+          el.innerText = translations[foundCustomTranslationKey];
+          el.contentEditable = "true";
+          el.setAttribute('data-editor-custom-key', foundCustomTranslationKey);
+          return;
+        }
+
+        // Try exact match in standard JSON database properties
+        if (pathMap[text]) {
+          const path = pathMap[text][0]; // take first path
+          el.contentEditable = "true";
+          el.setAttribute('data-editor-path', path);
+          el.setAttribute('data-editor-prefix', '');
+          el.setAttribute('data-editor-suffix', '');
+          return;
+        }
+
+        // Try substring match for prefixes/suffixes
+        let matchedSub = false;
+        for (const val in pathMap) {
+          if (val.length > 2 && text.includes(val)) {
+            const path = pathMap[val][0];
+            const prefix = text.substring(0, text.indexOf(val));
+            const suffix = text.substring(text.indexOf(val) + val.length);
+            
+            el.contentEditable = "true";
+            el.setAttribute('data-editor-path', path);
+            el.setAttribute('data-editor-prefix', prefix);
+            el.setAttribute('data-editor-suffix', suffix);
+            matchedSub = true;
+            break;
+          }
+        }
+        if (matchedSub) return;
+
+        // If it's still not matched, it's a static template text (like headings, section titles)
+        // Make it editable as a custom template title!
+        el.contentEditable = "true";
+        el.setAttribute('data-editor-custom-key', text);
+      });
+
+      // 2. Map Image Elements
+      const images = document.getElementById('brand-root').querySelectorAll('img');
+      images.forEach(img => {
+        const src = img.getAttribute('src');
+        if (!src) return;
+
+        // Check if there is already a custom translated value for this image's src
+        let foundCustomImageKey = null;
+        if (config.template_data && config.template_data.custom_images) {
+          for (const originalKey in config.template_data.custom_images) {
+            if (src === originalKey || src === config.template_data.custom_images[originalKey]) {
+              foundCustomImageKey = originalKey;
+              break;
+            }
+          }
+        }
+
+        if (foundCustomImageKey) {
+          img.src = config.template_data.custom_images[foundCustomImageKey];
+          img.setAttribute('src', config.template_data.custom_images[foundCustomImageKey]);
+          img.setAttribute('data-editor-custom-image-key', foundCustomImageKey);
+          img.style.cursor = 'pointer';
+          img.title = 'Double-click to change image URL';
+          return;
+        }
+
+        // Find match in pathMap
+        let matched = false;
+        for (const val in pathMap) {
+          if (src.includes(val) || val.includes(src)) {
+            const path = pathMap[val][0];
+            img.setAttribute('data-editor-path', path);
+            img.style.cursor = 'pointer';
+            img.title = 'Double-click to change image URL';
+            matched = true;
+            break;
+          }
+        }
+
+        if (!matched) {
+          // If not in database, it's a static template image
+          // Make it editable as a custom template image!
+          img.setAttribute('data-editor-custom-image-key', src);
+          img.style.cursor = 'pointer';
+          img.title = 'Double-click to change image URL';
+        }
+      });
+    }
+
+    function handleInlineInput(e) {
+      const path = e.target.getAttribute('data-editor-path');
+      const customKey = e.target.getAttribute('data-editor-custom-key');
+
+      if (!path && !customKey) return;
+
+      const newValue = e.target.innerText.trim();
+
+      if (path) {
+        const prefix = e.target.getAttribute('data-editor-prefix') || '';
+        const suffix = e.target.getAttribute('data-editor-suffix') || '';
+
+        let val = e.target.innerText;
+        
+        // Strip prefix and suffix
+        if (prefix && val.startsWith(prefix)) {
+          val = val.substring(prefix.length);
+        }
+        if (suffix && val.endsWith(suffix)) {
+          val = val.substring(0, val.length - suffix.length);
+        }
+
+        // Send update message to parent editor window
+        window.parent.postMessage({
+          type: 'INLINE_PATH_EDITED',
+          path: path,
+          value: val.trim()
+        }, '*');
+      } else if (customKey) {
+        // Send update message for custom translation text
+        window.parent.postMessage({
+          type: 'INLINE_CUSTOM_TEXT_EDITED',
+          key: customKey,
+          value: newValue
+        }, '*');
+      }
+    }
+
+    function handleImageDblClick(e) {
+      if (e.target.tagName.toLowerCase() !== 'img') return;
+      
+      const img = e.target;
+      const path = img.getAttribute('data-editor-path');
+      const customImageKey = img.getAttribute('data-editor-custom-image-key');
+      if (!path && !customImageKey) return;
+
+      // Prompt to edit image URL
+      const currentSrc = img.getAttribute('src') || img.src;
+      const newSrc = prompt('Enter new Image URL:', currentSrc);
+      if (newSrc && newSrc.trim() !== '' && newSrc !== currentSrc) {
+        img.src = newSrc.trim();
+        img.setAttribute('src', newSrc.trim());
+        
+        // Notify parent editor
+        if (path) {
+          window.parent.postMessage({
+            type: 'INLINE_PATH_EDITED',
+            path: path,
+            value: newSrc.trim()
+          }, '*');
+        } else if (customImageKey) {
+          window.parent.postMessage({
+            type: 'INLINE_CUSTOM_IMAGE_EDITED',
+            key: customImageKey,
+            value: newSrc.trim()
+          }, '*');
+        }
+      }
+    }
+
+    // Listen to messages from Parent Editor
+    window.addEventListener('message', (event) => {
+      // Reorder Sections live in DOM
+      if (event.data && event.data.type === 'REORDER_SECTIONS') {
+        const order = event.data.order;
+        reorderDOMSections(order);
+      }
+      
+      // Update inline style/theme colors
+      if (event.data && event.data.type === 'APPLY_THEME_COLOR') {
+        applyThemeColor(event.data.color);
+      }
+      
+      // Live style update message from editor
+      if (event.data && event.data.type === 'UPDATE_STYLE') {
+        const key = event.data.key;
+        const prop = event.data.property;
+        const val = event.data.value;
+
+        let el = null;
+        if (key.startsWith('path:')) {
+          const path = key.substring(5);
+          el = document.querySelector(`[data-editor-path="${path}"]`);
+        } else if (key.startsWith('custom:')) {
+          const customKey = key.substring(7);
+          el = document.querySelector(`[data-editor-custom-key="${customKey}"]`);
+        } else if (key.startsWith('custom-image:')) {
+          const customImageKey = key.substring(13);
+          el = document.querySelector(`[data-editor-custom-image-key="${customImageKey}"]`);
+        }
+
+        if (el) {
+          if (prop === 'animation') {
+            applyAnimationClass(el, val);
+          } else {
+            el.style[prop] = val;
+          }
+        }
+      }
+    });
+
+    // Handle element click selection to load styling controls
+    function handleElementSelection(e) {
+      const el = e.target;
+      const isEditable = el.getAttribute('contenteditable') === 'true';
+      const isImage = el.tagName.toLowerCase() === 'img';
+      
+      if (!isEditable && !isImage) return;
+
+      const path = el.getAttribute('data-editor-path') || '';
+      const customKey = el.getAttribute('data-editor-custom-key') || '';
+      const customImageKey = el.getAttribute('data-editor-custom-image-key') || '';
+
+      const computedStyle = window.getComputedStyle(el);
+
+      // Notify parent window about selected element style attributes
+      window.parent.postMessage({
+        type: 'ELEMENT_SELECTED',
+        elementType: isImage ? 'image' : 'text',
+        path: path,
+        customKey: customKey,
+        customImageKey: customImageKey,
+        style: {
+          fontSize: computedStyle.fontSize,
+          color: rgbToHex(computedStyle.color),
+          backgroundColor: rgbToHex(computedStyle.backgroundColor),
+          textAlign: computedStyle.textAlign,
+          borderRadius: computedStyle.borderRadius,
+          padding: computedStyle.padding,
+          animation: el.getAttribute('data-editor-animation') || 'none'
+        }
+      }, '*');
+    }
+
+    // Helper to format rgb color values into hex
+    function rgbToHex(rgb) {
+      if (!rgb || rgb === 'rgba(0, 0, 0, 0)' || rgb === 'transparent') return 'transparent';
+      const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+      if (!match) return '#000000';
+      function hex(x) {
+        return ("0" + parseInt(x).toString(16)).slice(-2);
+      }
+      return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+    }
+
+    function applyCustomStyles() {
+      const config = window.__GETSHERE_PREVIEW_DATA__;
+      if (!config || !config.template_data || !config.template_data.custom_styles) return;
+
+      const styles = config.template_data.custom_styles;
+      for (const key in styles) {
+        let el = null;
+        if (key.startsWith('path:')) {
+          const path = key.substring(5);
+          el = document.querySelector(`[data-editor-path="${path}"]`);
+        } else if (key.startsWith('custom:')) {
+          const customKey = key.substring(7);
+          el = document.querySelector(`[data-editor-custom-key="${customKey}"]`);
+        } else if (key.startsWith('custom-image:')) {
+          const customImageKey = key.substring(13);
+          el = document.querySelector(`[data-editor-custom-image-key="${customImageKey}"]`);
+        }
+
+        if (el) {
+          const elStyles = styles[key];
+          for (const prop in elStyles) {
+            if (prop === 'animation') {
+              applyAnimationClass(el, elStyles[prop]);
+            } else {
+              el.style[prop] = elStyles[prop];
+            }
+          }
+        }
+      }
+    }
+
+    function applyAnimationClass(el, anim) {
+      // Remove all previous animation classes
+      el.classList.remove('anim-fade-in', 'anim-slide-up', 'anim-zoom-in', 'anim-pulse', 'anim-bounce');
+      el.removeAttribute('data-editor-animation');
+      
+      if (!anim || anim === 'none') return;
+      
+      el.classList.add('anim-' + anim);
+      el.setAttribute('data-editor-animation', anim);
+    }
+
+    function reorderDOMSections(order) {
+      const main = document.querySelector('main') || document.getElementById('brand-root');
+      if (!main) return;
+
+      // Find section elements
+      let sections = Array.from(main.querySelectorAll('main > section, #brand-root > section'));
+      if (sections.length === 0) {
+        sections = Array.from(main.querySelectorAll('section, header, footer'));
+      }
+      if (sections.length === 0) {
+        sections = Array.from(main.children);
+      }
+
+      // Build section map by ID
+      const sectionMap = {};
+      sections.forEach(sec => {
+        const id = sec.id || sec.className || sec.tagName.toLowerCase();
+        if (id) sectionMap[id] = sec;
+      });
+
+      // Rearrange inside DOM
+      order.forEach(id => {
+        const sec = sectionMap[id];
+        if (sec && sec.parentNode === main) {
+          main.appendChild(sec); // Moves node to end of list in this order
+        }
+      });
+      
+      // Push footer to bottom
+      const footer = main.querySelector('footer');
+      if (footer) main.appendChild(footer);
+    }
+
+    function applyThemeColor(color) {
+      // Set primary color css variable dynamically
+      document.documentElement.style.setProperty('--primary', color);
+      document.documentElement.style.setProperty('--p1-primary', color);
+      
+      // Dynamically create or replace style override block
+      let styleOverride = document.getElementById('getshere-editor-theme-override');
+      if (!styleOverride) {
+        styleOverride = document.createElement('style');
+        styleOverride.id = 'getshere-editor-theme-override';
+        document.head.appendChild(styleOverride);
+      }
+
+      styleOverride.innerHTML = `
+        :root {
+          --primary: ${color} !important;
+          --primary-hover: ${color}cc !important;
+          --p1-primary: ${color} !important;
+          --primary-gradient: linear-gradient(135deg, ${color}, #7c3aed) !important;
+        }
+        .p1-badge, .p1-btn-primary, .p1-progress-bar, .p1-header a.active, .p1-social-icons a:hover {
+          color: ${color} !important;
+          border-color: ${color} !important;
+        }
+        .p1-btn-primary {
+          background-color: ${color} !important;
+          color: white !important;
+        }
+        .p1-progress-bar {
+          stroke: ${color} !important;
+        }
+      `;
+    }
+  </script>
+</body>
+</html>

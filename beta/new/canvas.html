@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Preview</title>
+    <!-- Common Fonts & Icons for canvas -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- User can customize these via global settings later -->
+    <style id="global-styles">
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f8fafc; color: #1e293b; line-height: 1.6; }
+        * { box-sizing: border-box; }
+        
+        /* Container Structure */
+        .g-section { position: relative; padding: 40px 20px; transition: all 0.3s ease; }
+        .g-container { max-width: 1200px; margin: 0 auto; width: 100%; position: relative; height: 100%; }
+        .g-row { display: flex; flex-wrap: wrap; margin: 0 -15px; height: 100%; }
+        .g-col { padding: 0 15px; display: flex; flex-direction: column; min-height: 50px; position: relative; height: 100%; }
+        
+        /* Widget Wrapper */
+        .g-widget { position: relative; margin-bottom: 20px; }
+        
+        /* BUILDER UI OVERLAYS (Only active in editor mode) */
+        body.is-editor .g-section:hover { outline: 2px dashed #94a3b8; }
+        body.is-editor .g-col { border: 1px dashed transparent; transition: border 0.2s; }
+        body.is-editor .g-col:hover { border: 1px dashed #cbd5e1; background: rgba(241, 245, 249, 0.5); }
+        
+        /* Section Controls */
+        .sec-controls { display: none; position: absolute; top: 0; left: 0; background: #3b82f6; color: white; padding: 4px 8px; border-bottom-right-radius: 4px; z-index: 10; font-size: 12px; gap: 8px; }
+        body.is-editor .g-section:hover > .sec-controls { display: flex; }
+        .sec-controls i { cursor: pointer; }
+        .sec-controls i:hover { color: #bfdbfe; }
+        
+        /* Column Controls / Add Widget */
+        .col-controls { display: none; position: absolute; top: -14px; left: 10px; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; z-index: 15; font-size: 10px; gap: 8px; }
+        body.is-editor .g-col:hover .col-controls { display: flex; }
+        .col-controls i { cursor: pointer; }
+        .col-controls i:hover { color: #fde68a; }
+        
+        .col-add-btn { display: none; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 80px; border: 2px dashed #cbd5e1; border-radius: 8px; cursor: pointer; color: #64748b; margin-top: 10px; transition: all 0.2s; background: transparent; }
+        .col-add-btn:hover { border-color: #3b82f6; color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        body.is-editor .col-add-btn { display: flex; }
+        body.is-editor .g-col.has-widgets .col-add-btn { min-height: 40px; margin-top: 0; }
+        
+        /* Widget Controls */
+        body.is-editor .g-widget:hover { outline: 2px solid #3b82f6; cursor: pointer; }
+        .wid-controls { display: none; position: absolute; top: -14px; right: 0; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; z-index: 20; font-size: 10px; gap: 8px; }
+        body.is-editor .g-widget:hover .wid-controls { display: flex; }
+        
+        /* Selection Highlight */
+        body.is-editor .g-widget.is-selected { outline: 2px solid #2563eb; background: rgba(59, 130, 246, 0.05); }
+
+        /* Empty State */
+        .empty-canvas { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #94a3b8; }
+        .empty-canvas button { margin-top: 20px; background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+        .empty-canvas button:hover { background: #2563eb; }
+    </style>
+</head>
+<body class="is-editor">
+    
+    <div id="render-root">
+        <!-- Rendered layout goes here -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="canvas.js"></script>
+</body>
+</html>

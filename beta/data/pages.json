@@ -1,0 +1,185 @@
+[
+  {
+    "slug": "john-doe",
+    "created_date": "2026-06-20T10:00:00.000Z",
+    "update_date": "2026-06-22T12:00:00.000Z",
+    "update_version": 1,
+    "status": "active",
+    "plan": "free",
+    "template": "personal1",
+    "basic_identity": {
+      "name": "John Doe",
+      "tagline": "Full Stack Web Developer & Designer",
+      "logo": "Portfolio.",
+      "banner_image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200",
+      "avatar": "https://i.ibb.co/9vX19pX/developer-cartoon.png"
+    },
+    "contact_section": {
+      "email": "john.doe@example.com",
+      "phone": "+91 98765 43210",
+      "address": "Mumbai, Maharashtra, India",
+      "google_map_link": "https://maps.google.com"
+    },
+    "social_links": {
+      "facebook": "https://facebook.com/johndoe",
+      "instagram": "https://instagram.com/johndoe",
+      "twitter": "https://twitter.com/johndoe",
+      "linkedin": "https://linkedin.com/in/johndoe",
+      "github": "https://github.com/johndoe"
+    },
+    "website_content": {
+      "about_us": "I am a passionate software engineer with 5+ years of experience building modern web applications using React, Node.js, and Cloud native tools. I love solving complex architecture problems and crafting pixel-perfect interfaces.",
+      "skills": [
+        { "name": "HTML5 & CSS3", "level": "95" },
+        { "name": "JavaScript (ES6+)", "level": "90" },
+        { "name": "React / Next.js", "level": "85" },
+        { "name": "Node.js / Express", "level": "80" },
+        { "name": "Python / Django", "level": "70" }
+      ],
+      "experience": [
+        {
+          "title": "Senior Web Developer",
+          "company": "Tech Solutions Inc.",
+          "year": "2024 - Present",
+          "desc": "Leading a team of 4 front-end developers building next-generation SaaS products using Next.js and Tailwind."
+        },
+        {
+          "title": "Full Stack Developer",
+          "company": "Creative Code Agency",
+          "year": "2021 - 2024",
+          "desc": "Built and maintained custom e-commerce and cms platforms for startup clients globally."
+        }
+      ],
+      "education": [
+        {
+          "degree": "Bachelor of Science in Computer Science",
+          "school": "University of Mumbai",
+          "year": "2017 - 2021",
+          "desc": "Graduated with honors. Specialized in Web Systems and Databases."
+        }
+      ],
+      "projects": [
+        {
+          "title": "E-Commerce Analytics Dashboard",
+          "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600",
+          "desc": "Dashboard UI",
+          "short_desc": "Real-time sales, user engagement, and marketing analytics platform built using React and D3.js charts."
+        },
+        {
+          "title": "Smart Task Organizer",
+          "image": "https://images.unsplash.com/photo-1540350394557-8d14678e7f91?w=600",
+          "desc": "SaaS Platform",
+          "short_desc": "Collaborative project management tool featuring drag-and-drop kanban boards and automatic notifications."
+        }
+      ],
+      "services": [
+        {
+          "title": "Web App Development",
+          "desc": "Creating fast, custom-tailored, and scalable single-page web applications from scratch.",
+          "icon": "fa-laptop-code"
+        },
+        {
+          "title": "UI/UX Design Mockups",
+          "desc": "Designing visually stunning, premium-grade layouts and interactive components.",
+          "icon": "fa-drafting-compass"
+        }
+      ]
+    },
+    "template_data": {
+      "resume_link": "https://example.com/resume.pdf",
+      "hero_desc": "Specializing in crafting premium, high-performance web applications and beautiful responsive user interfaces.",
+      "stats": [
+        { "value": "5+", "label": "Years Experience" },
+        { "value": "50+", "label": "Projects Completed" },
+        { "value": "30+", "label": "Happy Clients" }
+      ],
+      "emailjs_user_id": "VNw4tIFbY2Rlg0X1Q",
+      "emailjs_service_id": "service_kh0m1l6",
+      "emailjs_template_id": "template_jfmfolg"
+    }
+  },
+  {
+    "slug": "organic-store",
+    "created_date": "2026-06-21T09:00:00.000Z",
+    "update_date": "2026-06-22T15:00:00.000Z",
+    "update_version": 1,
+    "status": "active",
+    "plan": "free",
+    "template": "shop1",
+    "basic_identity": {
+      "name": "Green Earth Organics",
+      "tagline": "100% Certified Organic & Fresh Farm Produce",
+      "logo": "OrganicStore",
+      "banner_image": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200"
+    },
+    "contact_section": {
+      "email": "contact@greenearth.com",
+      "phone": "+91 99999 88888",
+      "address": "Sector 15, Vashi, Navi Mumbai, India",
+      "google_map_link": "https://maps.google.com"
+    },
+    "social_links": {
+      "facebook": "https://facebook.com/greenearth",
+      "instagram": "https://instagram.com/greenearth"
+    },
+    "shop_content": {
+      "about": "Green Earth Organics is dedicated to bringing fresh, pesticide-free vegetables and fruits directly from local farms to your kitchen. We support sustainable agriculture and fair trade practices.",
+      "currency": "₹",
+      "categories": [
+        "Fresh Vegetables",
+        "Fruits & Berries",
+        "Organic Grains",
+        "Dairy & Eggs"
+      ],
+      "products": [
+        {
+          "name": "Organic Honey (500g)",
+          "price": "350",
+          "image": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600",
+          "desc": "Pure raw forest honey gathered from natural hives."
+        },
+        {
+          "name": "Fresh Organic Apples (1kg)",
+          "price": "240",
+          "image": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600",
+          "desc": "Crisp and juicy red delicious apples grown without artificial pesticides."
+        }
+      ],
+      "offers": [
+        {
+          "title": "Monsoon Super Discount",
+          "desc": "Get 15% off on all organic grains! Use coupon: GRAIN15",
+          "badge": "15% OFF"
+        }
+      ],
+      "testimonials": [
+        {
+          "name": "Ananya Sharma",
+          "text": "The vegetables are always fresh and taste so much better than regular market ones. Highly recommended!",
+          "role": "Customer"
+        }
+      ],
+      "gallery": [
+        "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600",
+        "https://images.unsplash.com/photo-1488459718432-36af50f677aa?w=600"
+      ],
+      "features": [
+        {
+          "title": "100% Organic",
+          "desc": "Certified organic farm-fresh items free from preservatives.",
+          "icon": "fa-seedling"
+        },
+        {
+          "title": "Home Delivery",
+          "desc": "Fast door-step delivery in ecofriendly packaging.",
+          "icon": "fa-shipping-fast"
+        }
+      ]
+    },
+    "template_data": {
+      "emailjs_user_id": "VNw4tIFbY2Rlg0X1Q",
+      "emailjs_service_id": "service_kh0m1l6",
+      "emailjs_template_id": "template_jfmfolg"
+    }
+  }
+]

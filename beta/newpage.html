@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro Live Editor | Getshere Pro</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #121824;
+      --surface-card: #1c2333;
+      --border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.15);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --success: #10b981;
+      --danger: #ef4444;
+      --font: 'Outfit', sans-serif;
+      --sidebar-width: 420px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Layout Frame */
+    .editor-wrapper {
+      display: flex;
+      flex-grow: 1;
+      height: calc(100vh - 60px);
+      position: relative;
+    }
+
+    /* Top Action Bar */
+    header {
+      height: 60px;
+      background: #090c14;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: white;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+      text-decoration: none;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      max-width: var(--sidebar-width);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 5;
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      background: #090c14;
+      border-bottom: 1px solid var(--border);
+      padding: 4px;
+      gap: 2px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 6px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .tab-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: white;
+      background: var(--surface-card);
+      box-shadow: inset 0 0 0 1px var(--border);
+    }
+
+    .sidebar-content {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .tab-panel {
+      display: none;
+      height: 100%;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: white;
+      font-family: var(--font);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+
+    .color-picker-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .color-preview {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    /* List Editor Components */
+    .list-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .list-items-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .list-item-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      position: relative;
+    }
+
+    .list-item-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      margin-top: 12px;
+      padding-top: 8px;
+    }
+
+    .item-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .item-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .item-btn.delete:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Drag reorder indicators */
+    .reorder-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reorder-item {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .reorder-item:active {
+      cursor: grabbing;
+    }
+
+    .reorder-handle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .reorder-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* Preview Canvas Area */
+    .preview-canvas {
+      flex-grow: 1;
+      background: #0f131f;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+
+    .viewport-toolbar {
+      height: 48px;
+      background: #090c14;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    .viewport-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .viewport-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .viewport-btn.active {
+      color: white;
+      background: var(--surface-card);
+      border-color: var(--border);
+    }
+
+    .style-align-btn {
+      transition: background-color 0.2s, font-weight 0.2s;
+    }
+
+    .style-align-btn:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .frame-container {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-radius 0.3s;
+    }
+
+    /* Device sizes */
+    iframe.desktop {
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+    }
+
+    iframe.tablet {
+      width: 768px;
+      height: 1024px;
+      max-height: 100%;
+      border-radius: 12px;
+      border: 6px solid var(--surface);
+    }
+
+    iframe.mobile {
+      width: 375px;
+      height: 812px;
+      max-height: 100%;
+      border-radius: 36px;
+      border: 12px solid var(--surface);
+    }
+
+    /* Buttons */
+    .btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font);
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface-card);
+      border: 1px solid var(--success);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 10000;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">PRO</div>
+      <a href="mypage.html" class="logo-text">GETSHERE EDITOR</a>
+    </div>
+    
+    <div class="top-actions">
+      <span id="saved-status" style="color: var(--text-muted); font-size: 13px; display: flex; align-items: center; gap: 6px;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
+        All changes saved locally
+      </span>
+      <a href="mypage.html" class="btn btn-secondary btn-sm">Dashboard</a>
+      <button onclick="savePageToDatabase()" class="btn btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        Save Page
+      </button>
+    </div>
+  </header>
+
+  <div class="editor-wrapper">
+    <!-- Sidebar Settings Panel -->
+    <div class="sidebar">
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-identity', this)">Identity</button>
+        <button class="tab-btn" onclick="switchTab('tab-content', this)">Content Lists</button>
+        <button class="tab-btn" onclick="switchTab('tab-reorder', this)">Reorder</button>
+        <button class="tab-btn" onclick="switchTab('tab-contact', this)">Socials</button>
+        <button class="tab-btn" onclick="switchTab('tab-styles', this)">Styles</button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Identity Tab -->
+        <div id="tab-identity" class="tab-panel active">
+          <div class="form-group">
+            <label>Template Layout</label>
+            <select id="field-template" class="form-control" onchange="updateTemplateSelection(this.value)">
+              <!-- Loaded dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Accent Theme Color</label>
+            <div class="color-picker-wrapper">
+              <input type="color" id="field-accent" class="color-preview" value="#6366f1" oninput="changeAccentColor(this.value)">
+              <input type="text" id="field-accent-text" class="form-control" value="#6366f1" style="width: 100px;" oninput="changeAccentColor(this.value)">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Name / Title</label>
+            <input type="text" id="field-name" class="form-control" oninput="updateField('name', this.value)">
+          </div>
+          <div class="form-group">
+            <label>URL Slug</label>
+            <input type="text" id="field-slug" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+            <label>Tagline</label>
+            <input type="text" id="field-tagline" class="form-control" oninput="updateField('tagline', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Logo Text / Link</label>
+            <input type="text" id="field-logo" class="form-control" oninput="updateField('logo', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Banner Image</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="field-banner" class="form-control" oninput="updateField('banner', this.value)">
+              <button onclick="triggerSidebarFileUpload('field-banner', 'banner')" class="btn btn-secondary" style="flex-shrink: 0; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center;" title="Upload Local Image">📁 Upload</button>
+            </div>
+          </div>
+          <div class="form-group" id="group-avatar" style="display: none;">
+            <label>Avatar Image</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="field-avatar" class="form-control" oninput="updateField('avatar', this.value)">
+              <button onclick="triggerSidebarFileUpload('field-avatar', 'avatar')" class="btn btn-secondary" style="flex-shrink: 0; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center;" title="Upload Local Image">📁 Upload</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>About Description</label>
+            <textarea id="field-about" class="form-control" oninput="updateField('about', this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- Content Lists Tab -->
+        <div id="tab-content" class="tab-panel">
+          <div class="form-group">
+            <label>Select List to Edit</label>
+            <select id="list-selector" class="form-control" onchange="switchListEditor(this.value)">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          
+          <div class="list-header-row">
+            <h4 id="active-list-title" style="font-weight: 700;">Items List</h4>
+            <button onclick="addNewListItem()" class="btn btn-secondary btn-sm">Add Item</button>
+          </div>
+
+          <div id="list-items-container" class="list-items-container">
+            <!-- Dynamic list item editors generated here -->
+          </div>
+        </div>
+
+        <!-- Section Reorder Tab -->
+        <div id="tab-reorder" class="tab-panel">
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Reorder sections of the page live. Click and drag items or use Up/Down controls.</p>
+          <div id="sections-reorder-list" class="reorder-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Socials Tab -->
+        <div id="tab-contact" class="tab-panel">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="text" id="field-email" class="form-control" oninput="updateField('email', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="field-phone" class="form-control" oninput="updateField('phone', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Google Map Embed Link</label>
+            <input type="text" id="field-gmap" class="form-control" oninput="updateField('google_map_link', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <textarea id="field-address" class="form-control" oninput="updateField('address', this.value)"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Facebook URL</label>
+            <input type="text" id="field-facebook" class="form-control" oninput="updateSocialLink('facebook', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Instagram URL</label>
+            <input type="text" id="field-instagram" class="form-control" oninput="updateSocialLink('instagram', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Twitter / X URL</label>
+            <input type="text" id="field-twitter" class="form-control" oninput="updateSocialLink('twitter', this.value)">
+          </div>
+          <div class="form-group">
+            <label>LinkedIn URL</label>
+            <input type="text" id="field-linkedin" class="form-control" oninput="updateSocialLink('linkedin', this.value)">
+          </div>
+          <div class="form-group">
+            <label>GitHub URL</label>
+            <input type="text" id="field-github" class="form-control" oninput="updateSocialLink('github', this.value)">
+          </div>
+        </div>
+
+        <!-- Styles Tab -->
+        <div id="tab-styles" class="tab-panel">
+          <div id="styles-no-selection" style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px;">
+            <div style="font-size: 32px; margin-bottom: 12px;">🎨</div>
+            <p>Click on any text or image in the live preview canvas to customize its style.</p>
+          </div>
+          
+          <div id="styles-controls" style="display: none; flex-direction: column; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; display: block; margin-bottom: 4px;">Selected Element</span>
+              <span id="selected-element-name" style="font-weight: 600; font-size: 14px; color: white;">Heading</span>
+            </div>
+
+            <!-- Font Size (Text only) -->
+            <div class="form-group" id="style-group-size">
+              <label>Font Size</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="range" id="style-font-size-range" min="10" max="80" value="16" style="flex-grow: 1;" oninput="updateSelectedStyle('fontSize', this.value + 'px')">
+                <span id="style-font-size-val" style="font-size: 13px; min-width: 36px; text-align: right;">16px</span>
+              </div>
+            </div>
+
+            <!-- Text Color (Text only) -->
+            <div class="form-group" id="style-group-color">
+              <label>Text Color</label>
+              <div class="color-picker-wrapper">
+                <input type="color" id="style-color" class="color-preview" oninput="updateSelectedStyle('color', this.value)">
+                <input type="text" id="style-color-text" class="form-control" style="width: 100px;" oninput="updateSelectedStyle('color', this.value)">
+              </div>
+            </div>
+
+            <!-- Background Color -->
+            <div class="form-group">
+              <label>Background Color</label>
+              <div class="color-picker-wrapper">
+                <input type="color" id="style-bg-color" class="color-preview" oninput="updateSelectedStyle('backgroundColor', this.value)">
+                <input type="text" id="style-bg-color-text" class="form-control" style="width: 100px;" oninput="updateSelectedStyle('backgroundColor', this.value)">
+                <button onclick="updateSelectedStyle('backgroundColor', 'transparent')" class="btn btn-secondary btn-sm" style="padding: 6px 10px;">Clear</button>
+              </div>
+            </div>
+
+            <!-- Text Align (Text only) -->
+            <div class="form-group" id="style-group-align">
+              <label>Alignment</label>
+              <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 6px; border: 1px solid var(--border);">
+                <button onclick="updateSelectedStyle('textAlign', 'left')" class="style-align-btn" style="flex:1; padding: 6px; border: none; background: transparent; color: white; cursor: pointer; border-radius: 4px; font-size:12px;">Left</button>
+                <button onclick="updateSelectedStyle('textAlign', 'center')" class="style-align-btn" style="flex:1; padding: 6px; border: none; background: transparent; color: white; cursor: pointer; border-radius: 4px; font-size:12px;">Center</button>
+                <button onclick="updateSelectedStyle('textAlign', 'right')" class="style-align-btn" style="flex:1; padding: 6px; border: none; background: transparent; color: white; cursor: pointer; border-radius: 4px; font-size:12px;">Right</button>
+              </div>
+            </div>
+
+            <!-- Border Radius (Image only) -->
+            <div class="form-group" id="style-group-radius" style="display: none;">
+              <label>Border Radius (Corner Roundness)</label>
+              <select id="style-border-radius" class="form-control" onchange="updateSelectedStyle('borderRadius', this.value)">
+                <option value="0px">Sharp Corners (0px)</option>
+                <option value="8px">Soft (8px)</option>
+                <option value="20px">Rounded (20px)</option>
+                <option value="50%">Circle (50%)</option>
+              </select>
+            </div>
+
+            <!-- Animation -->
+            <div class="form-group">
+              <label>Entrance Animation</label>
+              <select id="style-animation" class="form-control" onchange="updateSelectedStyle('animation', this.value)">
+                <option value="none">None</option>
+                <option value="fade-in">Fade In</option>
+                <option value="slide-up">Slide Up</option>
+                <option value="zoom-in">Zoom In</option>
+                <option value="pulse">Pulse Loop</option>
+                <option value="bounce">Bounce Loop</option>
+              </select>
+            </div>
+            
+            <!-- Padding -->
+            <div class="form-group">
+              <label>Spacing / Padding</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="range" id="style-padding" min="0" max="60" value="0" style="flex-grow: 1;" oninput="updateSelectedStyle('padding', this.value + 'px')">
+                <span id="style-padding-val" style="font-size: 13px; min-width: 36px; text-align: right;">0px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Preview Frame Canvas -->
+    <div class="preview-canvas">
+      <div class="viewport-toolbar">
+        <button class="viewport-btn active" onclick="setViewport('desktop', this)">
+          💻 Desktop
+        </button>
+        <button class="viewport-btn" onclick="setViewport('tablet', this)">
+          📟 Tablet
+        </button>
+        <button class="viewport-btn" onclick="setViewport('mobile', this)">
+          📱 Mobile
+        </button>
+      </div>
+
+      <div class="frame-container">
+        <iframe id="preview-frame" class="desktop" src="preview.html"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast alert -->
+  <div id="toast" class="toast">
+    <span style="font-size: 20px;">✓</span>
+    <span id="toast-message">Saved successfully!</span>
+  </div>
+
+  <!-- Global Hidden File Uploader -->
+  <input type="file" id="global-image-uploader" accept="image/*" style="display: none;" onchange="handleGlobalImageUpload(event)">
+
+  <!-- Custom Image Picker Modal -->
+  <div id="image-picker-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 540px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden; animation: fadeIn 0.25s ease-out;">
+      <!-- Modal Header -->
+      <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-weight: 700; color: white; margin: 0;">Select or Upload Image</h3>
+        <button onclick="closeImagePickerModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+      
+      <!-- Modal Body -->
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; max-height: 450px; overflow-y: auto;">
+        <!-- Option 1: File Upload -->
+        <div>
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Option 1: Upload Local Image</label>
+          <div style="border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'" onclick="document.getElementById('modal-file-input').click()">
+            <div style="font-size: 32px; margin-bottom: 8px;">📤</div>
+            <p style="font-size: 14px; font-weight: 600; color: white; margin-bottom: 4px;">Click to upload image file</p>
+            <p style="font-size: 12px; color: var(--text-muted);">Supports PNG, JPG, WEBP, SVG</p>
+            <input type="file" id="modal-file-input" accept="image/*" style="display: none;" onchange="handleModalImageUpload(event)">
+          </div>
+        </div>
+        
+        <!-- Option 2: Choose Presets -->
+        <div>
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Option 2: Select Preset Image</label>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;" id="modal-presets-grid">
+            <!-- Preset image thumbnails will be injected here -->
+          </div>
+        </div>
+        
+        <!-- Option 3: Custom URL -->
+        <div>
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Option 3: Enter URL</label>
+          <input type="text" id="modal-url-input" class="form-control" placeholder="https://example.com/image.png">
+        </div>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div style="padding: 16px 20px; background: rgba(0,0,0,0.15); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px;">
+        <button onclick="closeImagePickerModal()" class="btn btn-secondary btn-sm">Cancel</button>
+        <button onclick="saveModalImageSelection()" class="btn btn-sm">Apply Image</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
