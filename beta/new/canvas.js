@@ -70,6 +70,34 @@ function renderLayout() {
             colCtrl.innerHTML = `<i class="fa-solid fa-gear" title="Column Settings" onclick="event.stopPropagation(); parent.selectColumn('${section.id}', ${cIdx})"></i>`;
             colEl.appendChild(colCtrl);
 
+            // Drop zone for Drag & Drop
+            colEl.addEventListener('dragover', (e) => {
+                e.preventDefault(); // necessary to allow dropping
+                if(document.body.classList.contains('is-editor')) {
+                    colEl.style.background = 'rgba(59, 130, 246, 0.1)';
+                    colEl.style.border = '2px dashed #3b82f6';
+                }
+            });
+            colEl.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                colEl.style.background = '';
+                colEl.style.border = '';
+            });
+            colEl.addEventListener('drop', (e) => {
+                e.preventDefault();
+                colEl.style.background = '';
+                colEl.style.border = '';
+                
+                const typeId = e.dataTransfer.getData('moduleTypeId');
+                const dragWidgetId = e.dataTransfer.getData('widgetId');
+                
+                if (typeId) {
+                    parent.addWidgetToColumn(section.id, cIdx, typeId);
+                } else if (dragWidgetId) {
+                    parent.moveWidgetToColumn(dragWidgetId, section.id, cIdx);
+                }
+            });
+
             // Render Widgets
             if(col.widgets) {
                 col.widgets.forEach((widget, wIdx) => {
@@ -109,6 +137,13 @@ function renderWidget(widget, sectionId, colIndex) {
     const wrap = document.createElement('div');
     wrap.className = 'g-widget';
     wrap.id = widget.id;
+    wrap.draggable = true;
+    
+    wrap.ondragstart = (e) => {
+        e.dataTransfer.setData('widgetId', widget.id);
+        e.dataTransfer.effectAllowed = 'move';
+        e.stopPropagation(); // prevent section drag if we had one
+    };
     
     // Check if selected
     if(selectedWidget && selectedWidget.widgetId === widget.id) {
@@ -137,13 +172,62 @@ function renderWidget(widget, sectionId, colIndex) {
     // Click to select
     wrap.onclick = (e) => {
         e.stopPropagation();
+        if (selectedWidget && selectedWidget.widgetId === widget.id) return; // Prevent losing focus on re-click
         selectedWidget = {sectionId, colIndex, widgetId: widget.id};
         renderLayout(); // re-render to apply selection highlight
         parent.selectWidget(sectionId, colIndex, widget.id);
     };
 
+    // Inline editing for text widgets
+    if (document.body.classList.contains('is-editor') && ['heading', 'paragraph', 'button', 'quote'].includes(widget.type)) {
+        let targetEl = inner.firstElementChild;
+        if (widget.type === 'quote') targetEl = inner.querySelector('div > div:first-child');
+        
+        if (targetEl) {
+            targetEl.setAttribute('contenteditable', 'true');
+            targetEl.style.outline = 'none';
+            targetEl.style.cursor = 'text';
+            
+            targetEl.addEventListener('input', (e) => {
+                let textVal = targetEl.innerHTML;
+                if (widget.type === 'quote') {
+                    textVal = targetEl.innerText.replace(/"/g, ''); 
+                    parent.updateWidgetData(widget.id, 'text', textVal);
+                } else {
+                    parent.updateWidgetData(widget.id, 'content', textVal);
+                }
+            });
+            
+            targetEl.addEventListener('mouseup', showToolbar);
+            targetEl.addEventListener('keyup', showToolbar);
+        }
+    }
+
     return wrap;
 }
+
+function showToolbar() {
+    const selection = window.getSelection();
+    const toolbar = document.getElementById('floating-toolbar');
+    
+    if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        toolbar.style.display = 'flex';
+        toolbar.style.top = `${Math.max(0, rect.top + window.scrollY - 40)}px`;
+        toolbar.style.left = `${rect.left + window.scrollX}px`;
+    } else {
+        toolbar.style.display = 'none';
+    }
+}
+
+document.addEventListener('mousedown', (e) => {
+    if (!e.target.closest('#floating-toolbar') && !e.target.closest('[contenteditable]')) {
+        const tb = document.getElementById('floating-toolbar');
+        if(tb) tb.style.display = 'none';
+    }
+});
 
 // Actions
 function deleteSection(id) {

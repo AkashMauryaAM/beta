@@ -15,12 +15,18 @@
         
         /* Container Structure */
         .g-section { position: relative; padding: 40px 20px; transition: all 0.3s ease; }
-        .g-container { max-width: 1200px; margin: 0 auto; width: 100%; position: relative; height: 100%; }
-        .g-row { display: flex; flex-wrap: wrap; margin: 0 -15px; height: 100%; }
-        .g-col { padding: 0 15px; display: flex; flex-direction: column; min-height: 50px; position: relative; height: 100%; }
+        .g-container { max-width: 1200px; margin: 0 auto; width: 100%; position: relative; }
+        .g-row { display: flex; flex-wrap: wrap; margin: 0 -15px; }
+        .g-col { padding: 0 15px; display: flex; flex-direction: column; min-height: 50px; position: relative; }
         
         /* Widget Wrapper */
-        .g-widget { position: relative; margin-bottom: 20px; }
+        .g-widget { position: relative; margin-bottom: 20px; word-break: break-word; overflow-wrap: break-word; }
+        .g-widget img, .g-widget iframe, .g-widget video { max-width: 100%; }
+        
+        /* Responsive Columns */
+        @media (max-width: 768px) {
+            .g-col { width: 100% !important; padding-bottom: 20px; }
+        }
         
         /* BUILDER UI OVERLAYS (Only active in editor mode) */
         body.is-editor .g-section:hover { outline: 2px dashed #94a3b8; }
@@ -56,12 +62,25 @@
         .empty-canvas { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #94a3b8; }
         .empty-canvas button { margin-top: 20px; background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
         .empty-canvas button:hover { background: #2563eb; }
+        
+        /* Floating Toolbar */
+        #floating-toolbar { display: none; position: absolute; top: 0; left: 0; background: #1e293b; color: white; padding: 4px; border-radius: 6px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; gap: 4px; }
+        #floating-toolbar button { background: transparent; border: none; color: #cbd5e1; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: 0.2s; }
+        #floating-toolbar button:hover { background: #334155; color: white; }
     </style>
 </head>
 <body class="is-editor">
     
     <div id="render-root">
         <!-- Rendered layout goes here -->
+    </div>
+
+    <!-- Floating Text Toolbar -->
+    <div id="floating-toolbar" style="display: none;">
+        <button onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fa-solid fa-bold"></i></button>
+        <button onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fa-solid fa-italic"></i></button>
+        <button onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fa-solid fa-underline"></i></button>
+        <button onclick="let url = prompt('Enter URL:'); if(url) document.execCommand('createLink', false, url)" title="Link"><i class="fa-solid fa-link"></i></button>
     </div>
 
     <!-- Scripts -->
