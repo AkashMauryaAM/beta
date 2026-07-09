@@ -66,6 +66,22 @@ document.addEventListener('DOMContentLoaded', () => {
             window.injectElement('paragraph');
             window.cancelElementSelect();
             window.switchTab('patterns');
+        } else if (type === 'navbar') {
+            const row = window.addSplitContainer([100]);
+            // Override the default 500px height to 100px for the navbar
+            row.style.minHeight = '100px';
+            row.style.height = '100px';
+            
+            let wrap = row.children[0].querySelector('div[contenteditable="false"]');
+            window.activeContentWrap = wrap;
+            window.activeCol = row.children[0];
+            window.activeAddElementBtn = wrap.querySelector('button');
+            
+            // Just add a heading for the "Logo" or site name
+            window.injectElement('heading');
+            
+            window.cancelElementSelect();
+            window.switchTab('patterns');
         }
     };
 
