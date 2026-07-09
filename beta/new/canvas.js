@@ -54,6 +54,8 @@ function renderLayout() {
             const colEl = document.createElement('div');
             colEl.className = 'g-col';
             colEl.style.width = col.width + '%';
+            colEl.style.maxWidth = col.width + '%';
+            colEl.style.flex = '0 0 ' + col.width + '%';
             if (col.styles) {
                 Object.assign(colEl.style, col.styles);
                 if (col.styles.height || col.styles.maxHeight) {
@@ -67,7 +69,11 @@ function renderLayout() {
             // Column Controls Overlay
             const colCtrl = document.createElement('div');
             colCtrl.className = 'col-controls';
-            colCtrl.innerHTML = `<i class="fa-solid fa-gear" title="Column Settings" onclick="event.stopPropagation(); parent.selectColumn('${section.id}', ${cIdx})"></i>`;
+            colCtrl.innerHTML = `
+                <i class="fa-solid fa-plus" title="Split Column" style="color: #22c55e;" onclick="event.stopPropagation(); parent.splitColumn('${section.id}', ${cIdx})"></i>
+                <i class="fa-solid fa-trash" title="Delete Column" style="color: #ef4444;" onclick="event.stopPropagation(); parent.deleteColumn('${section.id}', ${cIdx})"></i>
+                <i class="fa-solid fa-gear" title="Column Settings" onclick="event.stopPropagation(); parent.selectColumn('${section.id}', ${cIdx})"></i>
+            `;
             colEl.appendChild(colCtrl);
 
             // Drop zone for Drag & Drop

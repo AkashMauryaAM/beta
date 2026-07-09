@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Container Builder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; overflow: hidden; }
+    </style>
+</head>
+<body class="flex h-screen w-full">
+
+    <!-- Sidebar -->
+    <aside class="w-80 bg-slate-900 border-r border-slate-700 flex flex-col z-10 shrink-0 p-4 space-y-6">
+        <div class="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700">
+            <i class="fa-solid fa-cube text-blue-500 text-xl"></i>
+            <span class="font-bold text-lg">Simple Builder</span>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-4" id="sidebar-tabs">
+            <button id="tab-layouts" onclick="window.switchTab('layouts')" class="flex-1 bg-blue-600 text-white font-bold py-2 px-2 rounded text-sm transition-colors">Layouts</button>
+            <button id="tab-patterns" onclick="window.switchTab('patterns')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-2 px-2 rounded text-sm transition-colors border border-slate-700">Patterns</button>
+        </div>
+        
+        <!-- Layouts Panel -->
+        <div id="layouts-panel" class="flex flex-col space-y-6">
+            <p class="text-sm text-slate-400">
+                Click a layout below to add a new 500px tall container.
+            </p>
+
+            <div class="space-y-3">
+                <button onclick="addSplitContainer([100])" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-square"></i> 1 Column (100%)
+                </button>
+
+                <button onclick="addSplitContainer([50, 50])" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-table-columns"></i> 2 Columns (50% / 50%)
+                </button>
+
+                <button onclick="addSplitContainer([33.33, 33.33, 33.33])" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-columns"></i> 3 Columns (33% each)
+                </button>
+
+                <button onclick="addSplitContainer([25, 25, 25, 25])" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-border-all"></i> 4 Columns (25% each)
+                </button>
+            </div>
+
+            <button id="clearBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded shadow-lg transition-colors flex items-center justify-center gap-2">
+                <i class="fa-solid fa-trash"></i> Clear Canvas
+            </button>
+        </div>
+
+        <!-- Patterns Panel -->
+        <div id="patterns-panel" class="hidden flex flex-col space-y-6">
+            <p class="text-sm text-slate-400">
+                Click a pattern below to add a ready-made section.
+            </p>
+
+            <div class="space-y-3">
+                <button onclick="window.addPattern('hero')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded shadow transition-colors flex items-center gap-3 text-left">
+                    <i class="fa-solid fa-image text-2xl w-8 text-center"></i>
+                    <div>
+                        <div class="text-sm">Hero Section</div>
+                        <div class="text-[10px] text-indigo-200 font-normal">Heading + Image Split</div>
+                    </div>
+                </button>
+
+                <button onclick="window.addPattern('features')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded shadow transition-colors flex items-center gap-3 text-left">
+                    <i class="fa-solid fa-list-check text-2xl w-8 text-center"></i>
+                    <div>
+                        <div class="text-sm">3 Features</div>
+                        <div class="text-[10px] text-indigo-200 font-normal">Three columns of text/image</div>
+                    </div>
+                </button>
+                
+                <button onclick="window.addPattern('cta')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded shadow transition-colors flex items-center gap-3 text-left">
+                    <i class="fa-solid fa-bullhorn text-2xl w-8 text-center"></i>
+                    <div>
+                        <div class="text-sm">Centered CTA</div>
+                        <div class="text-[10px] text-indigo-200 font-normal">Catchy heading & text</div>
+                    </div>
+                </button>
+            </div>
+            
+            <button onclick="document.getElementById('clearBtn').click()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded shadow-lg transition-colors flex items-center justify-center gap-2 mt-auto">
+                <i class="fa-solid fa-trash"></i> Clear Canvas
+            </button>
+        </div>
+
+        <!-- Elements Panel -->
+        <div id="elements-panel" class="hidden flex flex-col space-y-6">
+            <p class="text-sm text-slate-400">
+                Select an element to add to the highlighted column.
+            </p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="window.injectElement('heading')" class="bg-slate-800 hover:bg-slate-700 p-4 rounded flex flex-col items-center gap-2 transition-colors border border-slate-700 hover:border-blue-500">
+                    <i class="fa-solid fa-heading text-2xl text-blue-400"></i>
+                    <span class="text-xs">Heading</span>
+                </button>
+                <button onclick="window.injectElement('paragraph')" class="bg-slate-800 hover:bg-slate-700 p-4 rounded flex flex-col items-center gap-2 transition-colors border border-slate-700 hover:border-blue-500">
+                    <i class="fa-solid fa-paragraph text-2xl text-blue-400"></i>
+                    <span class="text-xs">Paragraph</span>
+                </button>
+                <button onclick="window.injectElement('image')" class="bg-slate-800 hover:bg-slate-700 p-4 rounded flex flex-col items-center gap-2 transition-colors border border-slate-700 hover:border-blue-500">
+                    <i class="fa-solid fa-image text-2xl text-blue-400"></i>
+                    <span class="text-xs">Image</span>
+                </button>
+            </div>
+            
+            <button onclick="window.cancelElementSelect()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded shadow transition-colors flex items-center justify-center gap-2">
+                <i class="fa-solid fa-xmark"></i> Cancel
+            </button>
+        </div>
+
+        <!-- Image Settings Panel -->
+        <div id="image-settings-panel" class="hidden flex flex-col space-y-4 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2 sticky top-0 bg-slate-900 z-10 pt-2">
+                <span class="font-bold text-sm text-slate-300"><i class="fa-solid fa-image text-blue-400 mr-2"></i> Image Settings</span>
+            </div>
+
+            <!-- CONTENT SECTION -->
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">Content</div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Source URL (src)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="img-src" class="w-full bg-slate-800 border border-slate-700 text-sm rounded p-1 text-white" oninput="window.updateImageAttribute('src', this.value)">
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white rounded px-2" onclick="window.triggerImageUpload()"><i class="fa-solid fa-upload"></i></button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Alt Text</label>
+                <input type="text" id="img-alt" class="w-full bg-slate-800 border border-slate-700 text-sm rounded p-1 text-white" oninput="window.updateImageAttribute('alt', this.value)">
+            </div>
+
+            <!-- STYLES SECTION -->
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4">Styles</div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Width (%)</label>
+                <input type="range" id="img-width" min="10" max="100" value="100" class="w-full" oninput="window.updateImageStyle('width', this.value + '%')">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Height (px) <span class="text-slate-600 text-[10px]">(0 = auto)</span></label>
+                <input type="range" id="img-height" min="0" max="500" value="0" class="w-full" oninput="window.updateImageStyle('height', this.value == 0 ? 'auto' : this.value + 'px')">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Aspect Ratio</label>
+                <select id="img-ratio" class="w-full bg-slate-800 border border-slate-700 text-sm rounded p-1 text-white" onchange="window.updateImageStyle('aspect-ratio', this.value)">
+                    <option value="auto">Auto</option>
+                    <option value="1 / 1">1:1 (Square)</option>
+                    <option value="16 / 9">16:9 (Widescreen)</option>
+                    <option value="4 / 3">4:3 (Standard)</option>
+                    <option value="3 / 4">3:4 (Portrait)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Background Color</label>
+                <div class="flex items-center gap-2">
+                    <input type="color" id="img-bg" class="w-8 h-8 rounded cursor-pointer border-none p-0" oninput="window.updateImageWrapStyle('backgroundColor', this.value)">
+                    <button class="text-xs text-slate-500 hover:text-white" onclick="document.getElementById('img-bg').value='#000000'; window.updateImageWrapStyle('backgroundColor', 'transparent');">Clear</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Padding (px)</label>
+                <input type="range" id="img-padding" min="0" max="100" value="0" class="w-full" oninput="window.updateImageWrapStyle('padding', this.value + 'px')">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Margin (px)</label>
+                <input type="range" id="img-margin" min="0" max="100" value="0" class="w-full" oninput="window.updateImageWrapStyle('margin', this.value + 'px')">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Border (px)</label>
+                <div class="flex gap-2 items-center">
+                    <input type="range" id="img-border-width" min="0" max="20" value="0" class="flex-1" oninput="window.updateImageWrapBorder()">
+                    <input type="color" id="img-border-color" value="#000000" class="w-8 h-8 rounded cursor-pointer border-none p-0" oninput="window.updateImageWrapBorder()">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Border Radius (px)</label>
+                <input type="range" id="img-radius" min="0" max="100" value="0" class="w-full" oninput="window.updateImageWrapStyle('borderRadius', this.value + 'px'); window.updateImageStyle('borderRadius', this.value + 'px');">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Box Shadow</label>
+                <select id="img-shadow" class="w-full bg-slate-800 border border-slate-700 text-sm rounded p-1 text-white" onchange="window.updateImageWrapStyle('boxShadow', this.value)">
+                    <option value="none">None</option>
+                    <option value="0 1px 2px 0 rgb(0 0 0 / 0.05)">Small</option>
+                    <option value="0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)">Medium</option>
+                    <option value="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)">Large</option>
+                    <option value="0 25px 50px -12px rgb(0 0 0 / 0.25)">Extra Large</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Opacity</label>
+                <input type="range" id="img-opacity" min="0" max="1" step="0.1" value="1" class="w-full" oninput="window.updateImageWrapStyle('opacity', this.value)">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Blur (px)</label>
+                <input type="range" id="img-blur" min="0" max="20" value="0" class="w-full" oninput="window.updateImageStyle('filter', 'blur(' + this.value + 'px)')">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Object Fit</label>
+                <select id="img-fit" class="w-full bg-slate-800 border border-slate-700 text-sm rounded p-1 text-white" onchange="window.updateImageStyle('objectFit', this.value)">
+                    <option value="fill">Fill</option>
+                    <option value="contain">Contain</option>
+                    <option value="cover" selected>Cover</option>
+                    <option value="none">None</option>
+                    <option value="scale-down">Scale Down</option>
+                </select>
+            </div>
+            
+            <div class="pt-4 border-t border-slate-700 flex gap-2 pb-4">
+                <button onclick="window.deleteActiveImage()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow transition-colors text-sm">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+                <button onclick="window.closeImageSettings()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded shadow transition-colors text-sm">
+                    Done
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Canvas Area -->
+    <main class="flex-1 bg-slate-800 p-8 overflow-y-auto relative flex flex-col items-center">
+        <div id="canvas-area" class="w-full max-w-[1200px] min-h-[800px] bg-white rounded shadow-xl border border-slate-700">
+            <!-- Containers will be injected here -->
+        </div>
+    </main>
+
+    <script src="simple_builder.js"></script>
+</body>
+</html>

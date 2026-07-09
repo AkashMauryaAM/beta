@@ -17,11 +17,11 @@
         .g-section { position: relative; padding: 40px 20px; transition: all 0.3s ease; }
         .g-container { max-width: 1200px; margin: 0 auto; width: 100%; position: relative; }
         .g-row { display: flex; flex-wrap: wrap; margin: 0 -15px; }
-        .g-col { padding: 0 15px; display: flex; flex-direction: column; min-height: 50px; position: relative; }
+        .g-col { padding: 0 15px; display: flex; flex-direction: column; min-height: 50px; position: relative; min-width: 0; }
         
         /* Widget Wrapper */
-        .g-widget { position: relative; margin-bottom: 20px; word-break: break-word; overflow-wrap: break-word; }
-        .g-widget img, .g-widget iframe, .g-widget video { max-width: 100%; }
+        .g-widget { position: relative; margin-bottom: 20px; word-break: break-word; overflow-wrap: break-word; max-width: 100% !important; box-sizing: border-box; }
+        .g-widget img, .g-widget iframe, .g-widget video { max-width: 100% !important; height: auto; object-fit: contain; }
         
         /* Responsive Columns */
         @media (max-width: 768px) {

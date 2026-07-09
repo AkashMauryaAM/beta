@@ -531,8 +531,8 @@ window.closeLayoutModal = function() {
 window.addSection = function(colWidths) {
     const newSection = {
         id: 'sec_' + Date.now().toString(36),
-        styles: { backgroundColor: '#ffffff', padding: '40px 20px' },
-        columns: colWidths.map(w => ({ width: w, widgets: [], styles: {} }))
+        styles: { backgroundColor: '#ffffff', padding: '0', containerWidth: '100%', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+        columns: colWidths.map(w => ({ width: w, widgets: [], styles: { height: '100%', display: 'flex', flexCol: 'column', alignItems: 'center', justifyContent: 'center' } }))
     };
 
     if (currentInsertIndex === -1 || currentInsertIndex >= layoutData.length) {
@@ -839,6 +839,45 @@ window.deleteSelected = function() {
     document.getElementById('active-settings').classList.add('hidden');
 };
 
+window.splitColumn = function(sectionId, colIndex) {
+    const sec = layoutData.find(s => s.id === sectionId);
+    if(sec) {
+        const col = sec.columns[colIndex];
+        const currentWidth = col.width;
+        const halfWidth = parseFloat((currentWidth / 2).toFixed(1));
+        col.width = halfWidth;
+        
+        const newCol = { width: currentWidth - halfWidth, widgets: [], styles: Object.assign({}, col.styles) };
+        sec.columns.splice(colIndex + 1, 0, newCol);
+        
+        syncToCanvas();
+        if (currentSelection && currentSelection.type === 'column' && currentSelection.sectionId === sectionId && currentSelection.colIndex === colIndex) {
+            buildSettingsForm(col, 'column');
+        }
+    }
+};
+
+window.deleteColumn = function(sectionId, colIndex) {
+    const sec = layoutData.find(s => s.id === sectionId);
+    if(sec) {
+        const col = sec.columns[colIndex];
+        if(sec.columns.length <= 1) {
+            layoutData = layoutData.filter(s => s.id !== sectionId);
+        } else {
+            const siblingIndex = colIndex > 0 ? colIndex - 1 : colIndex + 1;
+            sec.columns[siblingIndex].width += col.width;
+            sec.columns.splice(colIndex, 1);
+        }
+        
+        syncToCanvas();
+        if (currentSelection && currentSelection.type === 'column' && currentSelection.sectionId === sectionId && currentSelection.colIndex === colIndex) {
+            document.getElementById('empty-settings').classList.remove('hidden');
+            document.getElementById('active-settings').classList.add('hidden');
+            currentSelection = null;
+        }
+    }
+};
+
 function buildSettingsForm(element, mode = 'widget') {
     const container = document.getElementById('setting-controls');
     container.innerHTML = '';
@@ -859,6 +898,28 @@ function buildSettingsForm(element, mode = 'widget') {
             syncToCanvas();
         };
         colGroup.appendChild(wrap);
+
+        const actionGroup = document.createElement('div');
+        actionGroup.className = 'mt-4 flex gap-2';
+        
+        const splitBtn = document.createElement('button');
+        splitBtn.className = 'flex-1 py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold flex items-center justify-center gap-1 shadow';
+        splitBtn.innerHTML = '<i class="fa-solid fa-arrows-split-up-and-left"></i> Split';
+        splitBtn.onclick = () => {
+            window.splitColumn(currentSelection.sectionId, currentSelection.colIndex);
+        };
+        
+        const delBtn = document.createElement('button');
+        delBtn.className = 'flex-1 py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold flex items-center justify-center gap-1 shadow';
+        delBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Delete';
+        delBtn.onclick = () => {
+            window.deleteColumn(currentSelection.sectionId, currentSelection.colIndex);
+        };
+
+        actionGroup.appendChild(splitBtn);
+        actionGroup.appendChild(delBtn);
+        colGroup.appendChild(actionGroup);
+
         container.appendChild(colGroup);
     } else if(mode === 'widget') {
         const dataGroup = document.createElement('div');
@@ -1115,7 +1176,7 @@ function buildSettingsForm(element, mode = 'widget') {
     styleGroup.innerHTML = '<h4 class="text-xs font-bold text-slate-400 mb-2 border-b border-slate-700 pb-1">STYLES</h4>';
     
     const stylesDef = [
-        { key: 'containerWidth', label: 'Max Width', type: 'text' },
+        { key: 'containerWidth', label: 'Max Width', type: 'select', options: ['100%', '1200px', '960px', '800px', '600px'] },
         { key: 'color', label: 'Text Color', type: 'color' },
         { key: 'backgroundColor', label: 'Background', type: 'color' },
         { key: 'fontSize', label: 'Font Size', type: 'text' },
